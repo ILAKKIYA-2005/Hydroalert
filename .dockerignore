@@ -1,0 +1,12 @@
+node_modules/
+dist/
+build/
+.git
+.gitignore
+.idea
+*.iml
+.vscode
+*.log
+.DS_Store
+backend/target/
+mysql-data/

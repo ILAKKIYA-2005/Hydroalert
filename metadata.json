@@ -1,0 +1,6 @@
+{
+  "name": "HydroAlert",
+  "description": "Real-Time Water Leakage Detection & Instant Alert System - Final Year Project",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

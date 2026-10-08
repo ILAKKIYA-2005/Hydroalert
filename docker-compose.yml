@@ -1,0 +1,71 @@
+version: '3.8'
+
+# ========================================================
+# HydroAlert - Docker Compose Configuration
+# Orchestrates MySQL 8.0 Database and Spring Boot Backend
+# ========================================================
+
+services:
+  # ------------------------------------------------------
+  # 1. MySQL Database Container
+  # ------------------------------------------------------
+  mysql:
+    image: mysql:8.0
+    container_name: hydroalert-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: hydroalert_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - hydroalert-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - hydroalert-network
+
+  # ------------------------------------------------------
+  # 2. Spring Boot Backend Container
+  # ------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hydroalert-backend
+    restart: on-failure
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/hydroalert_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      HYDROALERT_APP_JWTSECRET: HydroAlertWaterLeakageDetectionSecretKey2026SecureJWTKeyCollegeFinalYearProjectSecret
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - hydroalert-network
+
+# --------------------------------------------------------
+# Shared Bridge Network for Container Communication
+# --------------------------------------------------------
+networks:
+  hydroalert-network:
+    driver: bridge
+
+# --------------------------------------------------------
+# Persistent Volume for MySQL Data Storage
+# --------------------------------------------------------
+volumes:
+  hydroalert-mysql-data:
+    driver: local
